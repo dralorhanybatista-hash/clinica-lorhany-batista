@@ -16,7 +16,7 @@ function Financeiro() {
   if (blocked) {
     return (
       <Shell>
-        <p className="card p-6">A secretaria não tem acesso ao financeiro.</p>
+        <p className="card p-6">Só a administração acessa o financeiro.</p>
       </Shell>
     );
   }

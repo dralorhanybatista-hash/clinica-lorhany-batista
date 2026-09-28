@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { Shell } from "@/components/Shell";
-import { loadData, saveData, today, uid, type ClinicData, type RxItem } from "@/lib/clinic";
+import { currentUser, loadData, saveData, today, uid, type ClinicData, type RxItem } from "@/lib/clinic";
 
 const searchSchema = z.object({ print: z.string().optional(), patient: z.string().optional() });
 const emptyItems = (): RxItem[] => [
@@ -26,6 +26,7 @@ function Receitas() {
   const [items, setItems] = useState<RxItem[]>(emptyItems);
   const [notes, setNotes] = useState("");
   const [selected, setSelected] = useState<string | null>(print ?? null);
+  const viewer = currentUser()?.role === "visualizacao";
 
   useEffect(() => setData(loadData()), []);
 
@@ -77,6 +78,7 @@ function Receitas() {
         </button>
       </div>
 
+      {!viewer && (
       <form onSubmit={save} className="card mb-6 grid gap-3 p-4 print:hidden md:grid-cols-2">
         <label>
           <span className="label">Paciente</span>
@@ -158,6 +160,7 @@ function Receitas() {
           </select>
         </div>
       </form>
+      )}
 
       <article className="relative mx-auto min-h-[70vh] w-full max-w-[210mm] bg-white px-8 py-8 shadow-sm">
         <header className="flex items-center justify-center gap-4 border-b border-[#e6ddd0] pb-6 text-center">

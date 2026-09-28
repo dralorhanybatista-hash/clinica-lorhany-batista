@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { brl, loadData, saveData, today, uid, type Appointment, type ClinicData } from "@/lib/clinic";
+import { brl, currentUser, loadData, saveData, today, uid, type Appointment, type ClinicData } from "@/lib/clinic";
 
 export const Route = createFileRoute("/agenda")({ component: AgendaPage });
 
@@ -9,7 +9,11 @@ function AgendaPage() {
   const [data, setData] = useState<ClinicData | null>(null);
   const [date, setDate] = useState(today());
   const [open, setOpen] = useState(false);
-  useEffect(() => setData(loadData()), []);
+  const [viewer, setViewer] = useState(false);
+  useEffect(() => {
+    setData(loadData());
+    setViewer(currentUser()?.role === "visualizacao");
+  }, []);
   const list = useMemo(
     () =>
       data
@@ -65,9 +69,11 @@ function AgendaPage() {
         <h1 className="font-serif text-3xl">Agenda</h1>
         <div className="flex gap-2">
           <input type="date" className="input w-auto" value={date} onChange={(e) => setDate(e.target.value)} />
-          <button className="btn-gold" onClick={() => setOpen(true)}>
-            Novo horário
-          </button>
+          {!viewer && (
+            <button className="btn-gold" onClick={() => setOpen(true)}>
+              Novo horário
+            </button>
+          )}
         </div>
       </div>
       <div className="card divide-y divide-parchment">
@@ -90,7 +96,7 @@ function AgendaPage() {
                     Ficha
                   </Link>
                 )}
-                {a.status !== "concluido" && a.status !== "cancelado" && (
+                {!viewer && a.status !== "concluido" && a.status !== "cancelado" && (
                   <>
                     <button className="btn-ghost !py-1" onClick={() => setStatus(a.id, "confirmado")}>
                       Confirmar
@@ -100,9 +106,11 @@ function AgendaPage() {
                     </button>
                   </>
                 )}
-                <button className="btn-ghost !py-1" onClick={() => remove(a.id)}>
-                  Excluir
-                </button>
+                {!viewer && (
+                  <button className="btn-ghost !py-1" onClick={() => remove(a.id)}>
+                    Excluir
+                  </button>
+                )}
               </div>
             </div>
           );

@@ -1,10 +1,13 @@
-export type Role = "admin" | "secretaria";
+export type Role = "admin" | "secretaria" | "visualizacao";
 
 export type Session = { username: string; name: string; role: Role };
 
-const USERS = [
-  { username: "lorhany", password: "lorhany2026", name: "Enfª Lorhany Batista", role: "admin" as const },
-  { username: "secretaria", password: "agenda2026", name: "Secretaria", role: "secretaria" as const },
+export type Staff = { id: string; username: string; password: string; name: string; role: Role };
+
+const STAFF = "lb-staff-v1";
+const SEED_STAFF: Staff[] = [
+  { id: "u_lorhany", username: "lorhany", password: "lorhany2026", name: "Enfª Lorhany Batista", role: "admin" },
+  { id: "u_secretaria", username: "secretaria", password: "agenda2026", name: "Secretaria", role: "secretaria" },
 ];
 
 const SESSION = "lb-session";
@@ -112,8 +115,27 @@ export function brl(n: number) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+export function loadStaff(): Staff[] {
+  if (typeof window === "undefined") return SEED_STAFF;
+  try {
+    const raw = localStorage.getItem(STAFF);
+    if (!raw) {
+      localStorage.setItem(STAFF, JSON.stringify(SEED_STAFF));
+      return SEED_STAFF;
+    }
+    const list = JSON.parse(raw) as Staff[];
+    return Array.isArray(list) && list.length ? list : SEED_STAFF;
+  } catch {
+    return SEED_STAFF;
+  }
+}
+
+export function saveStaff(list: Staff[]) {
+  localStorage.setItem(STAFF, JSON.stringify(list));
+}
+
 export function login(username: string, password: string): Session | null {
-  const u = USERS.find((x) => x.username === username.trim().toLowerCase() && x.password === password);
+  const u = loadStaff().find((x) => x.username === username.trim().toLowerCase() && x.password === password);
   if (!u) return null;
   const session = { username: u.username, name: u.name, role: u.role };
   localStorage.setItem(SESSION, JSON.stringify(session));

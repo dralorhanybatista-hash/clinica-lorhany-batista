@@ -21,6 +21,7 @@ function Ficha() {
   const [msg, setMsg] = useState("");
   const [confirmDrop, setConfirmDrop] = useState(false);
   const admin = role === "admin";
+  const viewer = role === "visualizacao";
   useEffect(() => {
     setData(loadData());
     setRole(currentUser()?.role ?? null);
@@ -42,6 +43,10 @@ function Ficha() {
   const recs = data.prescriptions.filter((r) => r.patientId === p.id);
 
   function persist(next: ClinicData) {
+    if (role === "visualizacao") {
+      setMsg("Seu acesso é só de visualização.");
+      return false;
+    }
     const err = saveData(next);
     if (err) {
       setMsg(err);
@@ -247,6 +252,7 @@ function Ficha() {
       {tab === "Fotos" && (
         <div className="card p-4">
           <h3 className="mb-3 font-serif text-lg">Antes e depois</h3>
+          {!viewer && (
           <div className="mb-4 flex flex-wrap gap-2">
             <select id="kind" className="input max-w-[140px]">
               <option value="antes">Antes</option>
@@ -278,6 +284,7 @@ function Ficha() {
               />
             </label>
           </div>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             {(["antes", "depois"] as const).map((k) => (
               <div key={k}>

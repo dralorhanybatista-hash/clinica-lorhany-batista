@@ -8,6 +8,7 @@ const NAV = [
   { href: "/agenda", label: "Agenda", admin: false },
   { href: "/receitas", label: "Receitas", admin: false },
   { href: "/financeiro", label: "Financeiro", admin: true },
+  { href: "/usuarios", label: "Usuários", admin: true },
 ] as const;
 
 export function Shell({ children }: { children: React.ReactNode }) {
@@ -21,7 +22,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     setUser(u);
     setReady(true);
     if (!u) navigate({ to: "/" });
-    else if (u.role === "secretaria" && path.startsWith("/financeiro")) navigate({ to: "/painel" });
+    else if (u.role !== "admin" && (path.startsWith("/financeiro") || path.startsWith("/usuarios"))) navigate({ to: "/painel" });
   }, [path, navigate]);
 
   if (!ready || !user) {

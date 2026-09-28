@@ -18,6 +18,7 @@ function PacientesPage() {
   }, []);
   if (!data) return null;
   const admin = role === "admin";
+  const viewer = role === "visualizacao";
   const list = data.patients.filter((p) => `${p.name} ${p.phone} ${p.cpf}`.toLowerCase().includes(q.toLowerCase()));
 
   function add(e: FormEvent<HTMLFormElement>) {
@@ -47,9 +48,11 @@ function PacientesPage() {
           <h1 className="font-serif text-3xl">Pacientes</h1>
           <p className="text-sm text-taupe">{data.patients.length} cadastros</p>
         </div>
-        <button className="btn-gold" onClick={() => setOpen(true)}>
-          Novo paciente
-        </button>
+        {!viewer && (
+          <button className="btn-gold" onClick={() => setOpen(true)}>
+            Novo paciente
+          </button>
+        )}
       </div>
       {msg && <p className="mb-3 text-sm text-red-800">{msg}</p>}
       <input className="input mb-4 max-w-md" placeholder="Buscar por nome, telefone ou CPF" value={q} onChange={(e) => setQ(e.target.value)} />

@@ -10,7 +10,7 @@ function Painel() {
   const [admin, setAdmin] = useState(true);
   useEffect(() => {
     setData(loadData());
-    setAdmin(currentUser()?.role !== "secretaria");
+    setAdmin(currentUser()?.role === "admin");
   }, []);
   if (!data) return null;
   const day = today();
