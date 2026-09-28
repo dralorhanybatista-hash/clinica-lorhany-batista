@@ -5,6 +5,13 @@ import { brl, currentUser, loadData, saveData, today, uid, type Appointment, typ
 
 export const Route = createFileRoute("/agenda")({ component: AgendaPage });
 
+function showPhone(phone: string) {
+  const d = phone.replace(/\D/g, "");
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return phone;
+}
+
 function waLink(phone: string) {
   let digits = phone.replace(/\D/g, "");
   if (digits.startsWith("0")) digits = digits.slice(1);
@@ -88,22 +95,24 @@ function AgendaPage() {
         {list.map((a) => {
           const p = data.patients.find((x) => x.id === a.patientId);
           return (
-            <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <div>
+            <div key={a.id} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-2">
                 <div className="font-medium">
                   {a.time} · {p?.name || "Paciente"}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-sm text-taupe">
-                  <span>
-                    {a.service} · {brl(a.value)} · {a.status}
-                  </span>
-                  {p?.phone && <span>{p.phone}</span>}
-                  {p?.phone && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-taupe">
+                  <span>{a.service}</span>
+                  <span>{brl(a.value)}</span>
+                  <span>{a.status}</span>
+                </div>
+                {p?.phone && (
+                  <div className="flex flex-wrap items-center gap-3 pt-1 text-sm">
+                    <span className="text-ink">{showPhone(p.phone)}</span>
                     <a
                       href={waLink(p.phone)}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-full bg-[#25D366] px-2 py-0.5 text-xs font-medium text-white"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3 py-1 text-xs font-medium text-white"
                       title="Conversar no WhatsApp"
                     >
                       <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
@@ -111,8 +120,8 @@ function AgendaPage() {
                       </svg>
                       WhatsApp
                     </a>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
               <div className="flex flex-wrap gap-2 text-sm">
                 {p && (
