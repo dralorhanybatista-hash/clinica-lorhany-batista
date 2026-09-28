@@ -4,6 +4,7 @@ import { z } from "zod";
 import { jsPDF } from "jspdf";
 import { Shell } from "@/components/Shell";
 import { currentUser, loadData, saveData, today, uid, type ClinicData, type RxItem } from "@/lib/clinic";
+import { LOGO_MARCA } from "@/lib/logo-marca";
 
 const searchSchema = z.object({ print: z.string().optional(), patient: z.string().optional() });
 const emptyItems = (): RxItem[] => [
@@ -69,26 +70,18 @@ function Receitas() {
 
   async function addLogoWatermark(doc: jsPDF) {
     try {
-      const res = await fetch("/logo.jpg");
-      const blob = await res.blob();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
       const pageW = 210;
       const pageH = 297;
-      const size = 130;
+      const size = 150;
       const x = (pageW - size) / 2;
       const y = (pageH - size) / 2;
-      const g = doc.GState({ opacity: 0.12 });
+      const g = doc.GState({ opacity: 0.14 });
       doc.saveGraphicsState();
       doc.setGState(g);
-      doc.addImage(dataUrl, "JPEG", x, y, size, size);
+      doc.addImage(LOGO_MARCA, "JPEG", x, y, size, size);
       doc.restoreGraphicsState();
     } catch {
-      /* segue sem marca d'agua se o logo nao carregar */
+      /* sem marca d'agua se o logo falhar */
     }
   }
 
@@ -154,7 +147,7 @@ function Receitas() {
     y = Math.max(y + 16, 250);
     doc.setFont("times", "bold");
     doc.setFontSize(11);
-    doc.text("Enfª Lorhany Rodrigues Batista", pageW / 2, y, { align: "center" });
+    doc.text("Enf\u00aa Lorhany Rodrigues Batista", pageW / 2, y, { align: "center" });
     y += 5;
     doc.setFont("times", "normal");
     doc.setFontSize(10);
@@ -162,7 +155,7 @@ function Receitas() {
     y += 6;
     doc.setFontSize(9);
     doc.setTextColor(107, 90, 74);
-    doc.text("Ed. Focus Business Center — Av. T-2, 471 — St. Bueno, Goiânia — GO", pageW / 2, y, { align: "center" });
+    doc.text("Ed. Focus Business Center \u2014 Av. T-2, 471 \u2014 St. Bueno, Goi\u00e2nia \u2014 GO", pageW / 2, y, { align: "center" });
     const slug = person.name
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -176,8 +169,8 @@ function Receitas() {
     <Shell>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3 print:hidden">
         <div>
-          <h1 className="font-serif text-3xl">Receituário</h1>
-          <p className="text-sm text-taupe">O que você escrever aqui já aparece na folha</p>
+          <h1 className="font-serif text-3xl">Receitu\u00e1rio</h1>
+          <p className="text-sm text-taupe">O que voc\u00ea escrever aqui j\u00e1 aparece na folha</p>
         </div>
         <div className="flex gap-2">
           <button type="button" className="btn-ghost" onClick={savePdf} disabled={!person}>
@@ -208,63 +201,28 @@ function Receitas() {
         </label>
         <label className="md:col-span-2">
           <span className="label">Uso</span>
-          <input className="input" value={use} onChange={(e) => setUse(e.target.value)} placeholder="Externo, oral, tópico..." />
+          <input className="input" value={use} onChange={(e) => setUse(e.target.value)} placeholder="Externo, oral, t\u00f3pico..." />
         </label>
         {items.map((item, i) => (
           <div key={i} className="grid gap-2 md:col-span-2 md:grid-cols-[1fr_1fr_1fr_auto]">
-            <input
-              className="input"
-              placeholder={`Fórmula ou produto ${i + 1}`}
-              value={item.name}
-              onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)))}
-            />
-            <input
-              className="input"
-              placeholder="Dose"
-              value={item.dose}
-              onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, dose: e.target.value } : x)))}
-            />
-            <input
-              className="input"
-              placeholder="Como usar"
-              value={item.posology}
-              onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, posology: e.target.value } : x)))}
-            />
-            <button
-              type="button"
-              className="btn-ghost px-3"
-              onClick={() => setItems(items.length > 1 ? items.filter((_, idx) => idx !== i) : emptyItems())}
-            >
-              Tirar
-            </button>
+            <input className="input" placeholder={`F\u00f3rmula ou produto ${i + 1}`} value={item.name} onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)))} />
+            <input className="input" placeholder="Dose" value={item.dose} onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, dose: e.target.value } : x)))} />
+            <input className="input" placeholder="Como usar" value={item.posology} onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, posology: e.target.value } : x)))} />
+            <button type="button" className="btn-ghost px-3" onClick={() => setItems(items.length > 1 ? items.filter((_, idx) => idx !== i) : emptyItems())}>Tirar</button>
           </div>
         ))}
         <div className="md:col-span-2">
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={() => setItems([...items, { name: "", dose: "", posology: "" }])}
-          >
-            + Adicionar mais
-          </button>
+          <button type="button" className="btn-ghost" onClick={() => setItems([...items, { name: "", dose: "", posology: "" }])}>+ Adicionar mais</button>
         </div>
         <label className="md:col-span-2">
-          <span className="label">Orientação</span>
-          <textarea className="input h-20" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Cuidados, retorno, observações" />
+          <span className="label">Orienta\u00e7\u00e3o</span>
+          <textarea className="input h-20" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Cuidados, retorno, observa\u00e7\u00f5es" />
         </label>
         <div className="flex flex-wrap items-center gap-3 md:col-span-2">
           <button className="btn-gold">Salvar receita</button>
-          <select
-            className="input max-w-xs"
-            value={selected || ""}
-            onChange={(e) => {
+          <select className="input max-w-xs" value={selected || ""} onChange={(e) => {
               const id = e.target.value;
-              if (!id) {
-                setSelected(null);
-                setItems(emptyItems());
-                setNotes("");
-                return;
-              }
+              if (!id) { setSelected(null); setItems(emptyItems()); setNotes(""); return; }
               const rec = data.prescriptions.find((r) => r.id === id);
               if (!rec) return;
               setSelected(rec.id);
@@ -273,16 +231,11 @@ function Receitas() {
               setUse(rec.use || "");
               setNotes(rec.notes || rec.body || "");
               setItems(rec.items?.length ? rec.items : emptyItems());
-            }}
-          >
+            }}>
             <option value="">Nova</option>
             {data.prescriptions.map((r) => {
               const p = data.patients.find((x) => x.id === r.patientId);
-              return (
-                <option key={r.id} value={r.id}>
-                  {r.date} — {p?.name || "Paciente"}
-                </option>
-              );
+              return (<option key={r.id} value={r.id}>{r.date} — {p?.name || "Paciente"}</option>);
             })}
           </select>
         </div>
@@ -290,16 +243,12 @@ function Receitas() {
       )}
 
       <article className="relative mx-auto min-h-[70vh] w-full max-w-[210mm] overflow-hidden bg-white px-8 py-8 shadow-sm">
-        <img
-          src="/logo.jpg"
-          alt=""
-          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full object-cover opacity-[0.12] print:opacity-[0.16]"
-        />
+        <img src={LOGO_MARCA} alt="" className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 object-contain opacity-[0.16] print:opacity-[0.18]" />
         <header className="relative z-10 flex items-center justify-center gap-4 border-b border-[#e6ddd0] pb-6 text-center">
-          <img src="/logo.jpg" alt="" className="h-16 w-16 rounded-full object-cover" />
+          <img src={LOGO_MARCA} alt="" className="h-16 w-16 object-contain" />
           <div>
             <div className="font-serif text-sm tracking-[0.35em] text-[#8B6B3A]">LORHANY BATISTA</div>
-            <div className="mt-1 text-[10px] uppercase tracking-[0.4em] text-[#9a8a78]">Saúde e Estética</div>
+            <div className="mt-1 text-[10px] uppercase tracking-[0.4em] text-[#9a8a78]">Sa\u00fade e Est\u00e9tica</div>
           </div>
         </header>
         <div className="relative z-10 mt-8 flex flex-wrap justify-between gap-4 text-sm">
@@ -328,9 +277,9 @@ function Receitas() {
         </ol>
         {notes && <p className="relative z-10 mt-6 whitespace-pre-wrap text-sm leading-6">{notes}</p>}
         <footer className="relative z-10 mt-16 text-center text-xs text-[#6b5a4a]">
-          <div className="font-medium">Enfª Lorhany Rodrigues Batista</div>
+          <div className="font-medium">Enf\u00aa Lorhany Rodrigues Batista</div>
           <div>Coren Go 242702</div>
-          <div className="mt-4 text-[11px]">Ed. Focus Business Center — Av. T-2, 471 — St. Bueno, Goiânia — GO</div>
+          <div className="mt-4 text-[11px]">Ed. Focus Business Center \u2014 Av. T-2, 471 \u2014 St. Bueno, Goi\u00e2nia \u2014 GO</div>
         </footer>
       </article>
     </Shell>
