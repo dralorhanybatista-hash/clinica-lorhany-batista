@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { brl, currentUser, loadData, saveData, today, uid, withoutPatient, type ClinicData, type Patient, type VisitItem } from "@/lib/clinic";
+import { brl, currentUser, loadData, saveData, shrinkImage, today, uid, withoutPatient, type ClinicData, type Patient, type VisitItem } from "@/lib/clinic";
 import { useNavigate } from "@tanstack/react-router";
 
 const TABS = ["Dados", "Anamnese", "Prontuário", "Atendimento", "Orçamentos", "Fotos", "Receita"] as const;
@@ -17,8 +17,14 @@ function Ficha() {
   const navigate = useNavigate();
   const [data, setData] = useState<ClinicData | null>(null);
   const [tab, setTab] = useState<(typeof TABS)[number]>(aba === "fotos" ? "Fotos" : "Dados");
-  const admin = currentUser()?.role === "admin";
-  useEffect(() => setData(loadData()), []);
+  const [role, setRole] = useState<string | null>(null);
+  const [msg, setMsg] = useState("");
+  const [confirmDrop, setConfirmDrop] = useState(false);
+  const admin = role === "admin";
+  useEffect(() => {
+    setData(loadData());
+    setRole(currentUser()?.role ?? null);
+  }, []);
   if (!data) return null;
   const p = data.patients.find((x) => x.id === id);
   if (!p) {
@@ -36,8 +42,14 @@ function Ficha() {
   const recs = data.prescriptions.filter((r) => r.patientId === p.id);
 
   function persist(next: ClinicData) {
-    saveData(next);
+    const err = saveData(next);
+    if (err) {
+      setMsg(err);
+      return false;
+    }
+    setMsg("");
     setData(next);
+    return true;
   }
 
   return (
@@ -56,20 +68,25 @@ function Ficha() {
           <button className="btn-gold" onClick={() => setTab("Fotos")}>
             Colocar foto
           </button>
-          {admin && (
+          {admin && !confirmDrop && (
+            <button className="btn-ghost text-red-800" onClick={() => setConfirmDrop(true)}>
+              Excluir
+            </button>
+          )}
+          {admin && confirmDrop && (
             <button
-              className="btn-ghost text-red-800"
+              className="rounded-md bg-red-800 px-3 py-2 text-sm text-white"
               onClick={() => {
-                if (!confirm(`Excluir ${p.name} e a ficha?`)) return;
                 persist(withoutPatient(data, p.id));
                 navigate({ to: "/pacientes" });
               }}
             >
-              Excluir
+              Confirmar exclusão
             </button>
           )}
         </div>
       </div>
+      {msg && <p className="mb-3 text-sm text-red-800">{msg}</p>}
       <div className="mb-5 flex flex-wrap gap-1">
         {TABS.map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`rounded-md px-3 py-1.5 text-sm ${tab === t ? "bg-gold-dark text-white" : "bg-white text-taupe"}`}>
@@ -236,26 +253,30 @@ function Ficha() {
               <option value="depois">Depois</option>
             </select>
             <input id="area" className="input max-w-[180px]" placeholder="Área" />
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="input"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = () => {
+            <label className="btn-gold cursor-pointer">
+              Escolher foto
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
                   const kind = (document.getElementById("kind") as HTMLSelectElement).value as "antes" | "depois";
                   const area = (document.getElementById("area") as HTMLInputElement).value;
-                  persist({
-                    ...data,
-                    photos: [{ id: uid("ph"), patientId: p.id, kind, area, dataUrl: String(reader.result), date: today() }, ...data.photos],
-                  });
-                };
-                reader.readAsDataURL(file);
-              }}
-            />
+                  shrinkImage(file)
+                    .then((dataUrl) => {
+                      const ok = persist({
+                        ...data,
+                        photos: [{ id: uid("ph"), patientId: p.id, kind, area, dataUrl, date: today() }, ...data.photos],
+                      });
+                      if (ok) setMsg("Foto salva nesta ficha.");
+                    })
+                    .catch(() => setMsg("Não consegui ler essa foto. Tente outra."));
+                }}
+              />
+            </label>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {(["antes", "depois"] as const).map((k) => (
