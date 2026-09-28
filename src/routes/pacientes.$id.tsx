@@ -287,7 +287,7 @@ function Ficha() {
           )}
           <div className="grid gap-4 sm:grid-cols-2">
             {(["antes", "depois"] as const).map((k) => (
-              <div key={k}>
+              <div key={k} className="list-scroll">
                 <h4 className="mb-2 text-xs uppercase text-taupe">{k}</h4>
                 {photos
                   .filter((ph) => ph.kind === k)
