@@ -38,6 +38,9 @@ function Ficha() {
     );
   }
   const visits = data.visits.filter((v) => v.patientId === p.id);
+  const byDate = [...visits].sort((a, b) => a.date.localeCompare(b.date));
+  const firstVisit = byDate.find((v) => v.type === "primeira") || byDate[0];
+  const lastVisit = byDate[byDate.length - 1];
   const budgets = data.budgets.filter((b) => b.patientId === p.id);
   const photos = data.photos.filter((ph) => ph.patientId === p.id);
   const recs = data.prescriptions.filter((r) => r.patientId === p.id);
@@ -172,26 +175,59 @@ function Ficha() {
       )}
 
       {tab === "Prontuário" && (
-        <div className="card p-4">
-          <p className="mb-3 text-sm text-taupe">{p.notes}</p>
-          {visits.length === 0 && <p className="text-sm text-taupe">Nenhuma evolução. Use a aba Atendimento.</p>}
-          <ol className="list-scroll space-y-4">
-            {visits.map((v) => (
-              <li key={v.id} className="border-l-2 border-gold pl-4 text-sm">
-                <p className="font-medium">
-                  {v.date} · {v.type}
-                </p>
-                <p className="text-taupe">{v.evolution}</p>
-                <ul>
-                  {v.items.map((i, idx) => (
-                    <li key={idx}>
-                      {i.desc} · {i.charged ? brl(i.amount) : "sem custo"}
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ol>
+        <div className="card overflow-hidden">
+          <header className="border-b border-parchment bg-cream px-5 py-4">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-taupe">Prontuário</p>
+            <h2 className="font-serif text-2xl">{p.name}</h2>
+            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-taupe">Primeiro atendimento</dt>
+                <dd className="font-medium">{firstVisit ? `${brDate(firstVisit.date)} · ${kindLabel(firstVisit.type)}` : "Ainda não registrado"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-taupe">Último atendimento</dt>
+                <dd className="font-medium">{lastVisit ? brDate(lastVisit.date) : "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-taupe">Nascimento</dt>
+                <dd>{p.birth ? brDate(p.birth) : "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-taupe">Telefone</dt>
+                <dd>{p.phone || "—"}</dd>
+              </div>
+            </dl>
+            {(p.complaints || p.allergies) && (
+              <p className="mt-3 text-sm text-taupe">
+                {p.complaints ? `Queixa: ${p.complaints}` : ""}
+                {p.complaints && p.allergies ? " · " : ""}
+                {p.allergies ? `Alergias: ${p.allergies}` : ""}
+              </p>
+            )}
+          </header>
+          <div className="p-4">
+            {p.notes && <p className="mb-3 text-sm">{p.notes}</p>}
+            {visits.length === 0 && <p className="text-sm text-taupe">Nenhuma evolução. Use a aba Atendimento.</p>}
+            <ol className="list-scroll space-y-4">
+              {[...visits]
+                .sort((a, b) => b.date.localeCompare(a.date))
+                .map((v) => (
+                  <li key={v.id} className="border-l-2 border-gold pl-4 text-sm">
+                    <p className="font-medium">
+                      {brDate(v.date)} · {kindLabel(v.type)}
+                    </p>
+                    <p className="text-taupe">{v.evolution || "Sem texto de evolução."}</p>
+                    <ul>
+                      {v.items.map((i, idx) => (
+                        <li key={idx}>
+                          {i.desc} · {i.charged ? brl(i.amount) : "sem custo"}
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+            </ol>
+          </div>
         </div>
       )}
 
@@ -341,6 +377,19 @@ function Field({ label, name, defaultValue, type = "text", required }: { label: 
       <input name={name} type={type} className="input" defaultValue={defaultValue} required={required} />
     </label>
   );
+}
+
+function brDate(iso?: string) {
+  if (!iso) return "—";
+  const [y, m, d] = iso.split("-");
+  return d && m && y ? `${d}/${m}/${y}` : iso;
+}
+
+function kindLabel(type: string) {
+  if (type === "primeira") return "Primeiro atendimento";
+  if (type === "retorno") return "Retorno";
+  if (type === "encaixe") return "Encaixe";
+  return type;
 }
 
 function VisitForm({
