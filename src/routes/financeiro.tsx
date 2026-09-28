@@ -8,6 +8,7 @@ export const Route = createFileRoute("/financeiro")({ component: Financeiro });
 function Financeiro() {
   const [data, setData] = useState<ClinicData | null>(null);
   const [blocked, setBlocked] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   useEffect(() => {
     if (currentUser()?.role !== "admin") setBlocked(true);
     else setData(loadData());
@@ -70,6 +71,7 @@ function Financeiro() {
               <th className="px-4 py-3">Tipo</th>
               <th className="px-4 py-3">Descrição</th>
               <th className="px-4 py-3 text-right">Valor</th>
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
@@ -82,7 +84,64 @@ function Financeiro() {
                   {f.type === "saida" ? "−" : "+"}
                   {brl(f.amount)}
                 </td>
+                <td className="px-4 py-2 text-right whitespace-nowrap">
+                  <button className="mr-3 text-gold-dark" onClick={() => setEditId(editId === f.id ? null : f.id)}>
+                    Corrigir
+                  </button>
+                  <button
+                    className="text-red-800"
+                    onClick={() => {
+                      if (!confirm("Apagar este lançamento?")) return;
+                      const next = { ...data, finance: data.finance.filter((x) => x.id !== f.id) };
+                      saveData(next);
+                      setData(next);
+                    }}
+                  >
+                    Apagar
+                  </button>
+                </td>
               </tr>
+              {editId === f.id && (
+                <tr className="border-t border-parchment bg-cream">
+                  <td colSpan={5} className="px-4 py-3">
+                    <form
+                      className="grid gap-2 md:grid-cols-5"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const fd = new FormData(e.currentTarget);
+                        const next = {
+                          ...data,
+                          finance: data.finance.map((x) =>
+                            x.id === f.id
+                              ? {
+                                  ...x,
+                                  type: fd.get("type") as Finance["type"],
+                                  category: String(fd.get("category")),
+                                  description: String(fd.get("description")),
+                                  amount: Number(fd.get("amount")),
+                                  date: String(fd.get("date")),
+                                }
+                              : x,
+                          ),
+                        };
+                        saveData(next);
+                        setData(next);
+                        setEditId(null);
+                      }}
+                    >
+                      <select name="type" className="input" defaultValue={f.type}>
+                        <option value="entrada">Entrada</option>
+                        <option value="saida">Saída</option>
+                      </select>
+                      <input name="category" className="input" defaultValue={f.category} required />
+                      <input name="description" className="input" defaultValue={f.description} required />
+                      <input name="amount" type="number" step="0.01" className="input" defaultValue={f.amount} required />
+                      <input name="date" type="date" className="input" defaultValue={f.date} required />
+                      <button className="btn-gold md:col-span-5">Salvar correção</button>
+                    </form>
+                  </td>
+                </tr>
+              )}
             ))}
           </tbody>
         </table>
