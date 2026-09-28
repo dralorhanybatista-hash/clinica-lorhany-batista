@@ -79,10 +79,10 @@ function Receitas() {
       });
       const pageW = 210;
       const pageH = 297;
-      const size = 150;
+      const size = 200;
       const x = (pageW - size) / 2;
       const y = (pageH - size) / 2;
-      const g = doc.GState({ opacity: 0.12 });
+      const g = doc.GState({ opacity: 0.28 });
       doc.saveGraphicsState();
       doc.setGState(g);
       doc.addImage(String(dataUrl), "JPEG", x, y, size, size);
@@ -250,7 +250,7 @@ function Receitas() {
       )}
 
       <article className="relative mx-auto min-h-[70vh] w-full max-w-[210mm] overflow-hidden bg-white px-8 py-8 shadow-sm">
-        <img src="/logo.jpg" alt="" className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 object-contain opacity-25 mix-blend-multiply print:opacity-30" />
+        <img src="/logo.jpg" alt="" className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 object-contain opacity-45 mix-blend-multiply print:opacity-50" />
         <header className="relative z-10 flex items-center justify-center gap-4 border-b border-[#e6ddd0] pb-6 text-center">
           <img src="/logo.jpg" alt="" className="h-16 w-16 object-contain" />
           <div>
