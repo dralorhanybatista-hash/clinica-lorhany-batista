@@ -57,7 +57,7 @@ function PacientesPage() {
                 <td className="px-4 py-3 font-medium">{p.name}</td>
                 <td className="px-4 py-3">{p.phone}</td>
                 <td className="px-4 py-3 text-right">
-                  <Link to="/pacientes/$id" params={{ id: p.id }} search={{}} className="mr-3 text-gold-dark">
+                  <Link to="/pacientes/$id" params={{ id: p.id }} search={{ aba: undefined }} className="mr-3 text-gold-dark">
                     Ficha
                   </Link>
                   <Link to="/pacientes/$id" params={{ id: p.id }} search={{ aba: "fotos" }} className="mr-3 text-gold-dark">

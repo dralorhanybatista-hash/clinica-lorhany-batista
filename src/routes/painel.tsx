@@ -55,7 +55,7 @@ function Painel() {
                   </div>
                 </div>
                 {p && (
-                  <Link to="/pacientes/$id" params={{ id: p.id }} search={{}} className="text-gold-dark">
+                  <Link to="/pacientes/$id" params={{ id: p.id }} search={{ aba: undefined }} className="text-gold-dark">
                     Ficha
                   </Link>
                 )}
