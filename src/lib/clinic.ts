@@ -16,6 +16,13 @@ export type Patient = {
   phone: string;
   cpf: string;
   notes: string;
+  birth?: string;
+  email?: string;
+  address?: string;
+  allergies?: string;
+  medications?: string;
+  complaints?: string;
+  contraindication?: string;
 };
 
 export type Appointment = {

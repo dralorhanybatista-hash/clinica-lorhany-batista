@@ -1,16 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { brl, loadData, saveData, today, uid, type ClinicData, type VisitItem } from "@/lib/clinic";
+import { brl, currentUser, loadData, saveData, today, uid, type ClinicData, type Patient, type VisitItem } from "@/lib/clinic";
+import { useNavigate } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/pacientes/$id")({ component: Ficha });
+const TABS = ["Dados", "Anamnese", "Prontuário", "Atendimento", "Orçamentos", "Fotos", "Receita"] as const;
 
-const TABS = ["Prontuário", "Atendimento", "Orçamentos", "Fotos", "Receita"] as const;
+export const Route = createFileRoute("/pacientes/$id")({
+  validateSearch: (s: Record<string, unknown>) => ({ aba: typeof s.aba === "string" ? s.aba : undefined }),
+  component: Ficha,
+});
 
 function Ficha() {
   const { id } = Route.useParams();
+  const { aba } = Route.useSearch();
+  const navigate = useNavigate();
   const [data, setData] = useState<ClinicData | null>(null);
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Prontuário");
+  const [tab, setTab] = useState<(typeof TABS)[number]>(aba === "fotos" ? "Fotos" : "Dados");
+  const admin = currentUser()?.role === "admin";
   useEffect(() => setData(loadData()), []);
   if (!data) return null;
   const p = data.patients.find((x) => x.id === id);
@@ -38,10 +45,31 @@ function Ficha() {
       <Link to="/pacientes" className="text-sm text-taupe">
         ← Pacientes
       </Link>
-      <h1 className="mt-2 font-serif text-3xl">{p.name}</h1>
-      <p className="mb-4 text-sm text-taupe">
-        {p.phone || "sem telefone"} · {visits.length} evoluções · {photos.length} fotos
-      </p>
+      <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-serif text-3xl">{p.name}</h1>
+          <p className="text-sm text-taupe">
+            {p.phone || "sem telefone"} · {photos.length} fotos · {visits.length} evoluções
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button className="btn-gold" onClick={() => setTab("Fotos")}>
+            Colocar foto
+          </button>
+          {admin && (
+            <button
+              className="btn-ghost text-red-800"
+              onClick={() => {
+                if (!confirm(`Excluir ${p.name} e a ficha?`)) return;
+                persist({ ...data, patients: data.patients.filter((x) => x.id !== p.id) });
+                navigate({ to: "/pacientes" });
+              }}
+            >
+              Excluir
+            </button>
+          )}
+        </div>
+      </div>
       <div className="mb-5 flex flex-wrap gap-1">
         {TABS.map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`rounded-md px-3 py-1.5 text-sm ${tab === t ? "bg-gold-dark text-white" : "bg-white text-taupe"}`}>
@@ -49,6 +77,77 @@ function Ficha() {
           </button>
         ))}
       </div>
+
+      {tab === "Dados" && (
+        <form
+          className="card grid gap-3 p-4 sm:grid-cols-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            const updated: Patient = {
+              ...p,
+              name: String(fd.get("name")),
+              phone: String(fd.get("phone")),
+              cpf: String(fd.get("cpf")),
+              birth: String(fd.get("birth")),
+              email: String(fd.get("email")),
+              address: String(fd.get("address")),
+              notes: String(fd.get("notes")),
+            };
+            persist({ ...data, patients: data.patients.map((x) => (x.id === p.id ? updated : x)) });
+          }}
+        >
+          <h3 className="font-serif text-lg sm:col-span-2">Cadastro</h3>
+          <Field label="Nome" name="name" defaultValue={p.name} required />
+          <Field label="Telefone" name="phone" defaultValue={p.phone} />
+          <Field label="CPF" name="cpf" defaultValue={p.cpf} />
+          <Field label="Nascimento" name="birth" type="date" defaultValue={p.birth || ""} />
+          <Field label="E-mail" name="email" defaultValue={p.email || ""} />
+          <Field label="Endereço" name="address" defaultValue={p.address || ""} />
+          <label className="sm:col-span-2">
+            <span className="label">Observações</span>
+            <textarea name="notes" className="input h-20" defaultValue={p.notes} />
+          </label>
+          <button className="btn-gold sm:col-span-2">Salvar alterações</button>
+        </form>
+      )}
+
+      {tab === "Anamnese" && (
+        <form
+          className="card space-y-3 p-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            const updated: Patient = {
+              ...p,
+              complaints: String(fd.get("complaints")),
+              allergies: String(fd.get("allergies")),
+              medications: String(fd.get("medications")),
+              contraindication: String(fd.get("contraindication")),
+            };
+            persist({ ...data, patients: data.patients.map((x) => (x.id === p.id ? updated : x)) });
+          }}
+        >
+          <h3 className="font-serif text-lg">Anamnese</h3>
+          <label>
+            <span className="label">Queixa principal</span>
+            <textarea name="complaints" className="input h-20" defaultValue={p.complaints || ""} />
+          </label>
+          <label>
+            <span className="label">Alergias</span>
+            <textarea name="allergies" className="input h-16" defaultValue={p.allergies || ""} />
+          </label>
+          <label>
+            <span className="label">Medicamentos em uso</span>
+            <textarea name="medications" className="input h-16" defaultValue={p.medications || ""} />
+          </label>
+          <label>
+            <span className="label">Contraindicações</span>
+            <textarea name="contraindication" className="input h-16" defaultValue={p.contraindication || ""} />
+          </label>
+          <button className="btn-gold">Salvar anamnese</button>
+        </form>
+      )}
 
       {tab === "Prontuário" && (
         <div className="card p-4">
@@ -167,9 +266,20 @@ function Ficha() {
                   .map((ph) => (
                     <figure key={ph.id} className="mb-2 overflow-hidden rounded-lg border border-parchment">
                       <img src={ph.dataUrl} alt={k} className="max-h-72 w-full object-cover" />
-                      <figcaption className="px-2 py-1 text-xs text-taupe">
-                        {ph.date}
-                        {ph.area ? ` · ${ph.area}` : ""}
+                      <figcaption className="flex items-center justify-between px-2 py-1 text-xs text-taupe">
+                        <span>
+                          {ph.date}
+                          {ph.area ? ` · ${ph.area}` : ""}
+                        </span>
+                        {admin && (
+                          <button
+                            type="button"
+                            className="text-red-800"
+                            onClick={() => persist({ ...data, photos: data.photos.filter((x) => x.id !== ph.id) })}
+                          >
+                            Excluir
+                          </button>
+                        )}
                       </figcaption>
                     </figure>
                   ))}
@@ -203,6 +313,15 @@ function Ficha() {
         </form>
       )}
     </Shell>
+  );
+}
+
+function Field({ label, name, defaultValue, type = "text", required }: { label: string; name: string; defaultValue?: string; type?: string; required?: boolean }) {
+  return (
+    <label>
+      <span className="label">{label}</span>
+      <input name={name} type={type} className="input" defaultValue={defaultValue} required={required} />
+    </label>
   );
 }
 

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { loadData, saveData, uid, type ClinicData, type Patient } from "@/lib/clinic";
+import { loadData, saveData, uid, currentUser, type ClinicData, type Patient } from "@/lib/clinic";
 
 export const Route = createFileRoute("/pacientes")({ component: PacientesPage });
 
@@ -11,6 +11,7 @@ function PacientesPage() {
   const [open, setOpen] = useState(false);
   useEffect(() => setData(loadData()), []);
   if (!data) return null;
+  const admin = currentUser()?.role === "admin";
   const list = data.patients.filter((p) => `${p.name} ${p.phone} ${p.cpf}`.toLowerCase().includes(q.toLowerCase()));
 
   function add(e: FormEvent<HTMLFormElement>) {
@@ -56,9 +57,28 @@ function PacientesPage() {
                 <td className="px-4 py-3 font-medium">{p.name}</td>
                 <td className="px-4 py-3">{p.phone}</td>
                 <td className="px-4 py-3 text-right">
-                  <Link to="/pacientes/$id" params={{ id: p.id }} className="text-gold-dark">
-                    Abrir ficha
+                  <Link to="/pacientes/$id" params={{ id: p.id }} search={{}} className="mr-3 text-gold-dark">
+                    Ficha
                   </Link>
+                  <Link to="/pacientes/$id" params={{ id: p.id }} search={{ aba: "fotos" }} className="mr-3 text-gold-dark">
+                    Fotos
+                  </Link>
+                  {admin && (
+                    <button
+                      className="text-red-800"
+                      onClick={() => {
+                        if (!confirm(`Excluir ${p.name}?`)) return;
+                        const next = {
+                          ...data!,
+                          patients: data!.patients.filter((x) => x.id !== p.id),
+                        };
+                        saveData(next);
+                        setData(next);
+                      }}
+                    >
+                      Excluir
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
