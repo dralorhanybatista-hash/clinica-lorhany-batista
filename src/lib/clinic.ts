@@ -69,7 +69,17 @@ export type Photo = {
   date: string;
 };
 
-export type Rx = { id: string; patientId: string; date: string; body: string };
+export type RxItem = { name: string; dose: string; posology: string };
+
+export type Rx = {
+  id: string;
+  patientId: string;
+  date: string;
+  body: string;
+  use?: string;
+  items?: RxItem[];
+  notes?: string;
+};
 
 export type Finance = {
   id: string;

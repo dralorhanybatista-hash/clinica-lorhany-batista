@@ -290,27 +290,17 @@ function Ficha() {
       )}
 
       {tab === "Receita" && (
-        <form
-          className="card space-y-3 p-4"
-          onSubmit={(e: FormEvent<HTMLFormElement>) => {
-            e.preventDefault();
-            const fd = new FormData(e.currentTarget);
-            persist({
-              ...data,
-              prescriptions: [{ id: uid("r"), patientId: p.id, date: String(fd.get("date")), body: String(fd.get("body")) }, ...data.prescriptions],
-            });
-            e.currentTarget.reset();
-          }}
-        >
-          <input name="date" type="date" className="input" defaultValue={today()} required />
-          <textarea name="body" className="input h-32" placeholder="Prescrição / condutas" required />
-          <button className="btn-gold">Salvar</button>
+        <div className="card space-y-3 p-4">
+          <p className="text-sm text-taupe">Preencha os campos na folha. O nome deste paciente já vai junto.</p>
+          <Link to="/receitas" search={{ patient: p.id }} className="btn-gold inline-block">
+            Preencher receita
+          </Link>
           {recs.map((r) => (
             <Link key={r.id} to="/receitas" search={{ print: r.id }} className="block rounded-md border border-parchment p-3 text-sm">
               {r.date} — abrir receituário
             </Link>
           ))}
-        </form>
+        </div>
       )}
     </Shell>
   );
