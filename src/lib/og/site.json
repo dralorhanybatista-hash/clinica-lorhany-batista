@@ -1,5 +1,9 @@
 {
   "name": "Lorhany Batista",
+  "title": "Lorhany Batista — Saúde e Estética",
   "tagline": "Saúde e estética ortomolecular",
-  "description": "Prontuário, agenda e financeiro da clínica Lorhany Batista."
+  "description": "Prontuário, agenda e financeiro da clínica Lorhany Batista.",
+  "type": "x:game",
+  "card": "custom",
+  "banner": "/x-banner.jpg"
 }
