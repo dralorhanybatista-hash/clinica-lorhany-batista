@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { loadData, saveData, uid, currentUser, type ClinicData, type Patient } from "@/lib/clinic";
+import { loadData, saveData, uid, currentUser, withoutPatient, type ClinicData, type Patient } from "@/lib/clinic";
 
 export const Route = createFileRoute("/pacientes")({ component: PacientesPage });
 
@@ -68,10 +68,7 @@ function PacientesPage() {
                       className="text-red-800"
                       onClick={() => {
                         if (!confirm(`Excluir ${p.name}?`)) return;
-                        const next = {
-                          ...data!,
-                          patients: data!.patients.filter((x) => x.id !== p.id),
-                        };
+                        const next = withoutPatient(data!, p.id);
                         saveData(next);
                         setData(next);
                       }}

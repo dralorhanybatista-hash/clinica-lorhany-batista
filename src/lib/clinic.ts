@@ -156,3 +156,15 @@ export function loadData(): ClinicData {
 export function saveData(data: ClinicData) {
   localStorage.setItem(DATA, JSON.stringify(data));
 }
+
+export function withoutPatient(data: ClinicData, patientId: string): ClinicData {
+  return {
+    ...data,
+    patients: data.patients.filter((p) => p.id !== patientId),
+    appointments: data.appointments.filter((a) => a.patientId !== patientId),
+    visits: data.visits.filter((v) => v.patientId !== patientId),
+    budgets: data.budgets.filter((b) => b.patientId !== patientId),
+    photos: data.photos.filter((p) => p.patientId !== patientId),
+    prescriptions: data.prescriptions.filter((r) => r.patientId !== patientId),
+  };
+}

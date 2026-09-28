@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { brl, currentUser, loadData, saveData, today, uid, type ClinicData, type Patient, type VisitItem } from "@/lib/clinic";
+import { brl, currentUser, loadData, saveData, today, uid, withoutPatient, type ClinicData, type Patient, type VisitItem } from "@/lib/clinic";
 import { useNavigate } from "@tanstack/react-router";
 
 const TABS = ["Dados", "Anamnese", "Prontuário", "Atendimento", "Orçamentos", "Fotos", "Receita"] as const;
@@ -61,7 +61,7 @@ function Ficha() {
               className="btn-ghost text-red-800"
               onClick={() => {
                 if (!confirm(`Excluir ${p.name} e a ficha?`)) return;
-                persist({ ...data, patients: data.patients.filter((x) => x.id !== p.id) });
+                persist(withoutPatient(data, p.id));
                 navigate({ to: "/pacientes" });
               }}
             >

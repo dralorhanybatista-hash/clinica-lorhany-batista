@@ -11,7 +11,12 @@ function AgendaPage() {
   const [open, setOpen] = useState(false);
   useEffect(() => setData(loadData()), []);
   const list = useMemo(
-    () => (data ? data.appointments.filter((a) => a.date === date && a.status !== "cancelado").sort((a, b) => a.time.localeCompare(b.time)) : []),
+    () =>
+      data
+        ? data.appointments
+            .filter((a) => a.date === date && a.status !== "cancelado" && data.patients.some((p) => p.id === a.patientId))
+            .sort((a, b) => a.time.localeCompare(b.time))
+        : [],
     [data, date],
   );
   if (!data) return null;
@@ -93,11 +98,11 @@ function AgendaPage() {
                     <button className="btn-gold !py-1" onClick={() => setStatus(a.id, "concluido")}>
                       Concluir
                     </button>
-                    <button className="btn-ghost !py-1" onClick={() => remove(a.id)}>
-                      Tirar da agenda
-                    </button>
                   </>
                 )}
+                <button className="btn-ghost !py-1" onClick={() => remove(a.id)}>
+                  Excluir
+                </button>
               </div>
             </div>
           );

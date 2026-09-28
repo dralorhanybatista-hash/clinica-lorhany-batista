@@ -14,7 +14,7 @@ function Painel() {
   }, []);
   if (!data) return null;
   const day = today();
-  const todayAppts = data.appointments.filter((a) => a.date === day && a.status !== "cancelado");
+  const todayAppts = data.appointments.filter((a) => a.date === day && a.status !== "cancelado" && data.patients.some((p) => p.id === a.patientId));
   const month = day.slice(0, 7);
   const entradas = data.finance.filter((f) => f.type === "entrada" && f.date.startsWith(month)).reduce((s, f) => s + f.amount, 0);
   const saidas = data.finance.filter((f) => f.type === "saida" && f.date.startsWith(month)).reduce((s, f) => s + f.amount, 0);
