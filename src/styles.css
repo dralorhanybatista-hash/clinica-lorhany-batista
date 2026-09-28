@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html,
+  body {
+    background: #f7f3ec;
+    color: #2c241c;
+    min-height: 100%;
+  }
+}
+
+@theme {
+  --color-cream: #f7f3ec;
+  --color-parchment: #efe8dc;
+  --color-gold: #b08d57;
+  --color-gold-dark: #8b6b3a;
+  --color-taupe: #6b5a4a;
+  --color-ink: #2c241c;
+  --color-sage: #3d5a54;
+}
+
+@layer components {
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-gold-dark px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-gold;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-parchment bg-white px-4 py-2 text-sm font-medium text-taupe transition hover:bg-cream;
+  }
+  .card {
+    @apply rounded-xl border border-parchment bg-white shadow-sm;
+  }
+  .input {
+    @apply w-full rounded-md border border-parchment bg-white px-3 py-2 text-sm outline-none ring-gold/30 focus:ring-2;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-taupe;
+  }
+}
