@@ -10,7 +10,10 @@ function AgendaPage() {
   const [date, setDate] = useState(today());
   const [open, setOpen] = useState(false);
   useEffect(() => setData(loadData()), []);
-  const list = useMemo(() => (data ? data.appointments.filter((a) => a.date === date).sort((a, b) => a.time.localeCompare(b.time)) : []), [data, date]);
+  const list = useMemo(
+    () => (data ? data.appointments.filter((a) => a.date === date && a.status !== "cancelado").sort((a, b) => a.time.localeCompare(b.time)) : []),
+    [data, date],
+  );
   if (!data) return null;
 
   function persist(next: ClinicData) {
@@ -32,6 +35,10 @@ function AgendaPage() {
     };
     persist({ ...data!, appointments: [appt, ...data!.appointments] });
     setOpen(false);
+  }
+
+  function remove(id: string) {
+    persist({ ...data!, appointments: data!.appointments.filter((a) => a.id !== id) });
   }
 
   function setStatus(id: string, status: Appointment["status"]) {
@@ -86,8 +93,8 @@ function AgendaPage() {
                     <button className="btn-gold !py-1" onClick={() => setStatus(a.id, "concluido")}>
                       Concluir
                     </button>
-                    <button className="btn-ghost !py-1" onClick={() => setStatus(a.id, "cancelado")}>
-                      Cancelar
+                    <button className="btn-ghost !py-1" onClick={() => remove(a.id)}>
+                      Tirar da agenda
                     </button>
                   </>
                 )}
