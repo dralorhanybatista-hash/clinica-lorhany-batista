@@ -41,7 +41,7 @@ function Receitas() {
     setUse(rec.use || "");
     setNotes(rec.notes || rec.body || "");
     const saved = rec.items?.length ? rec.items : [];
-    setItems([...saved, ...emptyItems()].slice(0, 4));
+    setItems(saved.length ? saved : emptyItems());
   }, [data, print]);
 
   const person = data?.patients.find((p) => p.id === patientId);
@@ -67,11 +67,37 @@ function Receitas() {
     setSelected(rec.id);
   }
 
-  function savePdf() {
+  async function addLogoWatermark(doc: jsPDF) {
+    try {
+      const res = await fetch("/logo.jpg");
+      const blob = await res.blob();
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const pageW = 210;
+      const pageH = 297;
+      const size = 130;
+      const x = (pageW - size) / 2;
+      const y = (pageH - size) / 2;
+      const g = doc.GState({ opacity: 0.12 });
+      doc.saveGraphicsState();
+      doc.setGState(g);
+      doc.addImage(dataUrl, "JPEG", x, y, size, size);
+      doc.restoreGraphicsState();
+    } catch {
+      /* segue sem marca d'agua se o logo nao carregar */
+    }
+  }
+
+  async function savePdf() {
     if (!person) return;
     const doc = new jsPDF({ unit: "mm", format: "a4" });
     const pageW = 210;
     const margin = 20;
+    await addLogoWatermark(doc);
     let y = 22;
     doc.setTextColor(139, 107, 58);
     doc.setFont("times", "bold");
@@ -81,7 +107,7 @@ function Receitas() {
     doc.setFont("times", "normal");
     doc.setFontSize(9);
     doc.setTextColor(154, 138, 120);
-    doc.text("SAÚDE E ESTÉTICA", pageW / 2, y, { align: "center" });
+    doc.text("SAUDE E ESTETICA", pageW / 2, y, { align: "center" });
     y += 6;
     doc.setDrawColor(230, 221, 208);
     doc.line(margin, y, pageW - margin, y);
@@ -96,7 +122,8 @@ function Receitas() {
       doc.text(`Uso: ${use.trim()}`, margin, y);
       y += 10;
     }
-    lines.forEach((item, i) => {
+    for (let i = 0; i < lines.length; i++) {
+      const item = lines[i];
       doc.setFont("times", "bold");
       const title = `${i + 1}. ${item.name}${item.dose ? ` — ${item.dose}` : ""}`;
       const titleLines = doc.splitTextToSize(title, pageW - margin * 2);
@@ -113,9 +140,10 @@ function Receitas() {
       y += 3;
       if (y > 250) {
         doc.addPage();
+        await addLogoWatermark(doc);
         y = 20;
       }
-    });
+    }
     if (notes.trim()) {
       y += 4;
       doc.setFont("times", "normal");
@@ -183,10 +211,10 @@ function Receitas() {
           <input className="input" value={use} onChange={(e) => setUse(e.target.value)} placeholder="Externo, oral, tópico..." />
         </label>
         {items.map((item, i) => (
-          <div key={i} className="grid gap-2 md:col-span-2 md:grid-cols-3">
+          <div key={i} className="grid gap-2 md:col-span-2 md:grid-cols-[1fr_1fr_1fr_auto]">
             <input
               className="input"
-              placeholder="Fórmula ou produto"
+              placeholder={`Fórmula ou produto ${i + 1}`}
               value={item.name}
               onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)))}
             />
@@ -202,8 +230,24 @@ function Receitas() {
               value={item.posology}
               onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, posology: e.target.value } : x)))}
             />
+            <button
+              type="button"
+              className="btn-ghost px-3"
+              onClick={() => setItems(items.length > 1 ? items.filter((_, idx) => idx !== i) : emptyItems())}
+            >
+              Tirar
+            </button>
           </div>
         ))}
+        <div className="md:col-span-2">
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => setItems([...items, { name: "", dose: "", posology: "" }])}
+          >
+            + Adicionar mais
+          </button>
+        </div>
         <label className="md:col-span-2">
           <span className="label">Orientação</span>
           <textarea className="input h-20" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Cuidados, retorno, observações" />
@@ -228,7 +272,7 @@ function Receitas() {
               setDate(rec.date);
               setUse(rec.use || "");
               setNotes(rec.notes || rec.body || "");
-              setItems([...(rec.items || []), ...emptyItems()].slice(0, 4));
+              setItems(rec.items?.length ? rec.items : emptyItems());
             }}
           >
             <option value="">Nova</option>
@@ -245,15 +289,20 @@ function Receitas() {
       </form>
       )}
 
-      <article className="relative mx-auto min-h-[70vh] w-full max-w-[210mm] bg-white px-8 py-8 shadow-sm">
-        <header className="flex items-center justify-center gap-4 border-b border-[#e6ddd0] pb-6 text-center">
+      <article className="relative mx-auto min-h-[70vh] w-full max-w-[210mm] overflow-hidden bg-white px-8 py-8 shadow-sm">
+        <img
+          src="/logo.jpg"
+          alt=""
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full object-cover opacity-[0.12] print:opacity-[0.16]"
+        />
+        <header className="relative z-10 flex items-center justify-center gap-4 border-b border-[#e6ddd0] pb-6 text-center">
           <img src="/logo.jpg" alt="" className="h-16 w-16 rounded-full object-cover" />
           <div>
             <div className="font-serif text-sm tracking-[0.35em] text-[#8B6B3A]">LORHANY BATISTA</div>
             <div className="mt-1 text-[10px] uppercase tracking-[0.4em] text-[#9a8a78]">Saúde e Estética</div>
           </div>
         </header>
-        <div className="mt-8 flex flex-wrap justify-between gap-4 text-sm">
+        <div className="relative z-10 mt-8 flex flex-wrap justify-between gap-4 text-sm">
           <div>
             <span className="tracking-widest text-[#6b5a4a]">PACIENTE:</span>{" "}
             <span className="inline-block min-w-56 border-b border-[#2c241c] px-2">{person?.name || ""}</span>
@@ -264,11 +313,11 @@ function Receitas() {
           </div>
         </div>
         {use && (
-          <p className="mt-6 text-sm">
+          <p className="relative z-10 mt-6 text-sm">
             <span className="tracking-widest text-[#6b5a4a]">USO:</span> {use}
           </p>
         )}
-        <ol className="mt-8 min-h-[220px] space-y-4 font-serif text-[15px] leading-7">
+        <ol className="relative z-10 mt-8 min-h-[220px] space-y-4 font-serif text-[15px] leading-7">
           {lines.map((item, i) => (
             <li key={i}>
               <span className="font-medium">{i + 1}. {item.name}</span>
@@ -277,8 +326,8 @@ function Receitas() {
             </li>
           ))}
         </ol>
-        {notes && <p className="mt-6 whitespace-pre-wrap text-sm leading-6">{notes}</p>}
-        <footer className="mt-16 text-center text-xs text-[#6b5a4a]">
+        {notes && <p className="relative z-10 mt-6 whitespace-pre-wrap text-sm leading-6">{notes}</p>}
+        <footer className="relative z-10 mt-16 text-center text-xs text-[#6b5a4a]">
           <div className="font-medium">Enfª Lorhany Rodrigues Batista</div>
           <div>Coren Go 242702</div>
           <div className="mt-4 text-[11px]">Ed. Focus Business Center — Av. T-2, 471 — St. Bueno, Goiânia — GO</div>
