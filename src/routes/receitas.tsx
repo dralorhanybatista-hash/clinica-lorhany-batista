@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
+import { jsPDF } from "jspdf";
 import { Shell } from "@/components/Shell";
 import { currentUser, loadData, saveData, today, uid, type ClinicData, type RxItem } from "@/lib/clinic";
 
@@ -66,6 +67,83 @@ function Receitas() {
     setSelected(rec.id);
   }
 
+  function savePdf() {
+    if (!person) return;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageW = 210;
+    const margin = 20;
+    let y = 22;
+    doc.setTextColor(139, 107, 58);
+    doc.setFont("times", "bold");
+    doc.setFontSize(16);
+    doc.text("LORHANY BATISTA", pageW / 2, y, { align: "center" });
+    y += 7;
+    doc.setFont("times", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(154, 138, 120);
+    doc.text("SAÚDE E ESTÉTICA", pageW / 2, y, { align: "center" });
+    y += 6;
+    doc.setDrawColor(230, 221, 208);
+    doc.line(margin, y, pageW - margin, y);
+    y += 12;
+    doc.setTextColor(44, 36, 28);
+    doc.setFontSize(12);
+    const when = date.split("-").reverse().join("/");
+    doc.text(`Paciente: ${person.name}`, margin, y);
+    doc.text(`Data: ${when}`, pageW - margin, y, { align: "right" });
+    y += 10;
+    if (use.trim()) {
+      doc.text(`Uso: ${use.trim()}`, margin, y);
+      y += 10;
+    }
+    lines.forEach((item, i) => {
+      doc.setFont("times", "bold");
+      const title = `${i + 1}. ${item.name}${item.dose ? ` — ${item.dose}` : ""}`;
+      const titleLines = doc.splitTextToSize(title, pageW - margin * 2);
+      doc.text(titleLines, margin, y);
+      y += titleLines.length * 6;
+      if (item.posology) {
+        doc.setFont("times", "italic");
+        doc.setTextColor(107, 90, 74);
+        const pos = doc.splitTextToSize(item.posology, pageW - margin * 2 - 6);
+        doc.text(pos, margin + 6, y);
+        y += pos.length * 6;
+        doc.setTextColor(44, 36, 28);
+      }
+      y += 3;
+      if (y > 250) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+    if (notes.trim()) {
+      y += 4;
+      doc.setFont("times", "normal");
+      const noteLines = doc.splitTextToSize(notes.trim(), pageW - margin * 2);
+      doc.text(noteLines, margin, y);
+      y += noteLines.length * 6 + 8;
+    }
+    y = Math.max(y + 16, 250);
+    doc.setFont("times", "bold");
+    doc.setFontSize(11);
+    doc.text("Enfª Lorhany Rodrigues Batista", pageW / 2, y, { align: "center" });
+    y += 5;
+    doc.setFont("times", "normal");
+    doc.setFontSize(10);
+    doc.text("Coren Go 242702", pageW / 2, y, { align: "center" });
+    y += 6;
+    doc.setFontSize(9);
+    doc.setTextColor(107, 90, 74);
+    doc.text("Ed. Focus Business Center — Av. T-2, 471 — St. Bueno, Goiânia — GO", pageW / 2, y, { align: "center" });
+    const slug = person.name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    doc.save(`receita-${slug || "paciente"}-${date}.pdf`);
+  }
+
   return (
     <Shell>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3 print:hidden">
@@ -73,9 +151,14 @@ function Receitas() {
           <h1 className="font-serif text-3xl">Receituário</h1>
           <p className="text-sm text-taupe">O que você escrever aqui já aparece na folha</p>
         </div>
-        <button className="btn-gold" onClick={() => window.print()} disabled={!person}>
-          Imprimir
-        </button>
+        <div className="flex gap-2">
+          <button type="button" className="btn-ghost" onClick={savePdf} disabled={!person}>
+            Salvar PDF
+          </button>
+          <button type="button" className="btn-gold" onClick={() => window.print()} disabled={!person}>
+            Imprimir
+          </button>
+        </div>
       </div>
 
       {!viewer && (
