@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { currentUser, loadData, saveData, uid, withoutPatient, type ClinicData, type Patient } from "@/lib/clinic";
+import { currentUser, loadData, saveData, today, uid, withoutPatient, type ClinicData, type Patient } from "@/lib/clinic";
 
 export const Route = createFileRoute("/pacientes/")({ component: PacientesPage });
 
@@ -30,6 +30,7 @@ function PacientesPage() {
       phone: String(fd.get("phone")),
       cpf: String(fd.get("cpf")),
       notes: String(fd.get("notes")),
+      createdAt: today(),
     };
     const next = { ...data!, patients: [p, ...data!.patients] };
     const err = saveData(next);
@@ -56,9 +57,9 @@ function PacientesPage() {
       </div>
       {msg && <p className="mb-3 text-sm text-red-800">{msg}</p>}
       <input className="input mb-4 max-w-md" placeholder="Buscar por nome, telefone ou CPF" value={q} onChange={(e) => setQ(e.target.value)} />
-      <div className="card overflow-hidden">
+      <div className="card list-scroll overflow-hidden">
         <table className="w-full text-left text-sm">
-          <thead className="bg-cream text-xs uppercase tracking-wide text-taupe">
+          <thead className="sticky top-0 bg-cream text-xs uppercase tracking-wide text-taupe">
             <tr>
               <th className="px-4 py-3">Nome</th>
               <th className="px-4 py-3">Telefone</th>

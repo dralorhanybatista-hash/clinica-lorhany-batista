@@ -76,7 +76,7 @@ function AgendaPage() {
           )}
         </div>
       </div>
-      <div className="card divide-y divide-parchment">
+      <div className="card list-scroll divide-y divide-parchment">
         {list.length === 0 && <p className="p-6 text-sm text-taupe">Nenhum horário neste dia.</p>}
         {list.map((a) => {
           const p = data.patients.find((x) => x.id === a.patientId);

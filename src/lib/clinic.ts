@@ -26,6 +26,7 @@ export type Patient = {
   medications?: string;
   complaints?: string;
   contraindication?: string;
+  createdAt?: string;
 };
 
 export type Appointment = {

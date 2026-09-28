@@ -175,7 +175,7 @@ function Ficha() {
         <div className="card p-4">
           <p className="mb-3 text-sm text-taupe">{p.notes}</p>
           {visits.length === 0 && <p className="text-sm text-taupe">Nenhuma evolução. Use a aba Atendimento.</p>}
-          <ol className="space-y-4">
+          <ol className="list-scroll space-y-4">
             {visits.map((v) => (
               <li key={v.id} className="border-l-2 border-gold pl-4 text-sm">
                 <p className="font-medium">

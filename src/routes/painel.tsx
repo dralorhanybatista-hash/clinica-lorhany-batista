@@ -19,10 +19,29 @@ function Painel() {
   const entradas = data.finance.filter((f) => f.type === "entrada" && f.date.startsWith(month)).reduce((s, f) => s + f.amount, 0);
   const saidas = data.finance.filter((f) => f.type === "saida" && f.date.startsWith(month)).reduce((s, f) => s + f.amount, 0);
 
+  const pendentes = todayAppts.filter((a) => a.status === "agendado");
+  const cadastrosHoje = data.patients.filter((p) => p.createdAt === day);
+
   return (
     <Shell>
       <h1 className="mb-1 font-serif text-3xl">Painel</h1>
-      <p className="mb-6 text-sm text-taupe">Visão geral da clínica</p>
+      <p className="mb-4 text-sm text-taupe">Visão geral da clínica</p>
+      {(pendentes.length > 0 || cadastrosHoje.length > 0) && (
+        <div className="mb-5 grid gap-3 sm:grid-cols-2">
+          {pendentes.length > 0 && (
+            <Link to="/agenda" className="rounded-xl border border-gold bg-cream px-4 py-3 text-sm">
+              <span className="font-medium text-gold-dark">Demanda de hoje: {pendentes.length}</span>
+              <span className="mt-1 block text-taupe">Horários ainda sem confirmar.</span>
+            </Link>
+          )}
+          {cadastrosHoje.length > 0 && (
+            <Link to="/pacientes" className="rounded-xl border border-sage/40 bg-white px-4 py-3 text-sm">
+              <span className="font-medium text-sage">Cadastros de hoje: {cadastrosHoje.length}</span>
+              <span className="mt-1 block text-taupe">{cadastrosHoje.map((p) => p.name).join(", ")}</span>
+            </Link>
+          )}
+        </div>
+      )}
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat title="Pacientes" value={String(data.patients.length)} href="/pacientes" />
         <Stat title="Agenda de hoje" value={String(todayAppts.length)} href="/agenda" />
@@ -41,7 +60,7 @@ function Painel() {
       <section className="card p-5">
         <h2 className="mb-3 font-serif text-xl">Atendimentos de hoje</h2>
         {todayAppts.length === 0 && <p className="text-sm text-taupe">Nenhum atendimento para hoje.</p>}
-        <ul className="divide-y divide-parchment">
+        <ul className="list-scroll divide-y divide-parchment">
           {todayAppts.map((a) => {
             const p = data.patients.find((x) => x.id === a.patientId);
             return (

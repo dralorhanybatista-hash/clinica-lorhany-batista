@@ -63,7 +63,7 @@ function Financeiro() {
         <input name="date" type="date" className="input" defaultValue={today()} required />
         <button className="btn-gold md:col-span-5">Lançar</button>
       </form>
-      <div className="card overflow-auto">
+      <div className="card list-scroll overflow-auto">
         <table className="w-full text-left text-sm">
           <thead className="bg-cream text-xs uppercase text-taupe">
             <tr>

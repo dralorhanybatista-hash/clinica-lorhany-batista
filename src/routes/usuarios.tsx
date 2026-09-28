@@ -94,7 +94,7 @@ function UsuariosPage() {
         </label>
         <button className="btn-gold md:col-span-2">Criar usuário</button>
       </form>
-      <div className="card overflow-hidden">
+      <div className="card list-scroll overflow-hidden">
         <table className="w-full text-left text-sm">
           <thead className="bg-cream text-xs uppercase tracking-wide text-taupe">
             <tr>

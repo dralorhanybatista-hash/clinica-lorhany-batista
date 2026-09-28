@@ -39,4 +39,7 @@
   .label {
     @apply mb-1 block text-xs font-medium uppercase tracking-wide text-taupe;
   }
+  .list-scroll {
+    @apply max-h-80 overflow-y-auto;
+  }
 }
