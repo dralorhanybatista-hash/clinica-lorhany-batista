@@ -4,7 +4,6 @@ import { z } from "zod";
 import { jsPDF } from "jspdf";
 import { Shell } from "@/components/Shell";
 import { currentUser, loadData, saveData, today, uid, type ClinicData, type RxItem } from "@/lib/clinic";
-import { LOGO_MARCA } from "@/lib/logo-marca";
 
 const searchSchema = z.object({ print: z.string().optional(), patient: z.string().optional() });
 const emptyItems = (): RxItem[] => [
@@ -70,15 +69,23 @@ function Receitas() {
 
   async function addLogoWatermark(doc: jsPDF) {
     try {
+      const res = await fetch("/logo.jpg");
+      const blob = await res.blob();
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
       const pageW = 210;
       const pageH = 297;
       const size = 150;
       const x = (pageW - size) / 2;
       const y = (pageH - size) / 2;
-      const g = doc.GState({ opacity: 0.14 });
+      const g = doc.GState({ opacity: 0.12 });
       doc.saveGraphicsState();
       doc.setGState(g);
-      doc.addImage(LOGO_MARCA, "JPEG", x, y, size, size);
+      doc.addImage(String(dataUrl), "JPEG", x, y, size, size);
       doc.restoreGraphicsState();
     } catch {
       /* sem marca d'agua se o logo falhar */
@@ -243,9 +250,9 @@ function Receitas() {
       )}
 
       <article className="relative mx-auto min-h-[70vh] w-full max-w-[210mm] overflow-hidden bg-white px-8 py-8 shadow-sm">
-        <img src={LOGO_MARCA} alt="" className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 object-contain opacity-[0.16] print:opacity-[0.18]" />
+        <img src="/logo.jpg" alt="" className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 object-contain opacity-25 mix-blend-multiply print:opacity-30" />
         <header className="relative z-10 flex items-center justify-center gap-4 border-b border-[#e6ddd0] pb-6 text-center">
-          <img src={LOGO_MARCA} alt="" className="h-16 w-16 object-contain" />
+          <img src="/logo.jpg" alt="" className="h-16 w-16 object-contain" />
           <div>
             <div className="font-serif text-sm tracking-[0.35em] text-[#8B6B3A]">LORHANY BATISTA</div>
             <div className="mt-1 text-[10px] uppercase tracking-[0.4em] text-[#9a8a78]">SAUDE E ESTETICA</div>
