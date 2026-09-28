@@ -59,7 +59,7 @@ function Receitas() {
       use,
       items: lines,
       notes,
-      body: lines.map((i) => [i.name, i.dose, i.posology].filter(Boolean).join(" — ")).join("\n") + (notes ? `\n${notes}` : ""),
+      body: lines.map((i) => [i.name, i.dose, i.posology].filter(Boolean).join(" - ")).join("\n") + (notes ? `\n${notes}` : ""),
     };
     const rest = data!.prescriptions.filter((r) => r.id !== rec.id);
     const next = { ...data!, prescriptions: [rec, ...rest] };
@@ -118,7 +118,7 @@ function Receitas() {
     for (let i = 0; i < lines.length; i++) {
       const item = lines[i];
       doc.setFont("times", "bold");
-      const title = `${i + 1}. ${item.name}${item.dose ? ` — ${item.dose}` : ""}`;
+      const title = `${i + 1}. ${item.name}${item.dose ? ` - ${item.dose}` : ""}`;
       const titleLines = doc.splitTextToSize(title, pageW - margin * 2);
       doc.text(titleLines, margin, y);
       y += titleLines.length * 6;
@@ -147,7 +147,7 @@ function Receitas() {
     y = Math.max(y + 16, 250);
     doc.setFont("times", "bold");
     doc.setFontSize(11);
-    doc.text("Enf\u00aa Lorhany Rodrigues Batista", pageW / 2, y, { align: "center" });
+    doc.text("Enf. Lorhany Rodrigues Batista", pageW / 2, y, { align: "center" });
     y += 5;
     doc.setFont("times", "normal");
     doc.setFontSize(10);
@@ -155,7 +155,7 @@ function Receitas() {
     y += 6;
     doc.setFontSize(9);
     doc.setTextColor(107, 90, 74);
-    doc.text("Ed. Focus Business Center \u2014 Av. T-2, 471 \u2014 St. Bueno, Goi\u00e2nia \u2014 GO", pageW / 2, y, { align: "center" });
+    doc.text("Ed. Focus Business Center - Av. T-2, 471 - St. Bueno, Goiania - GO", pageW / 2, y, { align: "center" });
     const slug = person.name
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -169,8 +169,8 @@ function Receitas() {
     <Shell>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3 print:hidden">
         <div>
-          <h1 className="font-serif text-3xl">Receitu\u00e1rio</h1>
-          <p className="text-sm text-taupe">O que voc\u00ea escrever aqui j\u00e1 aparece na folha</p>
+          <h1 className="font-serif text-3xl">Receituario</h1>
+          <p className="text-sm text-taupe">O que voce escrever aqui ja aparece na folha</p>
         </div>
         <div className="flex gap-2">
           <button type="button" className="btn-ghost" onClick={savePdf} disabled={!person}>
@@ -201,11 +201,11 @@ function Receitas() {
         </label>
         <label className="md:col-span-2">
           <span className="label">Uso</span>
-          <input className="input" value={use} onChange={(e) => setUse(e.target.value)} placeholder="Externo, oral, t\u00f3pico..." />
+          <input className="input" value={use} onChange={(e) => setUse(e.target.value)} placeholder="Externo, oral, topico..." />
         </label>
         {items.map((item, i) => (
           <div key={i} className="grid gap-2 md:col-span-2 md:grid-cols-[1fr_1fr_1fr_auto]">
-            <input className="input" placeholder={`F\u00f3rmula ou produto ${i + 1}`} value={item.name} onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)))} />
+            <input className="input" placeholder={`Formula ou produto ${i + 1}`} value={item.name} onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)))} />
             <input className="input" placeholder="Dose" value={item.dose} onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, dose: e.target.value } : x)))} />
             <input className="input" placeholder="Como usar" value={item.posology} onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, posology: e.target.value } : x)))} />
             <button type="button" className="btn-ghost px-3" onClick={() => setItems(items.length > 1 ? items.filter((_, idx) => idx !== i) : emptyItems())}>Tirar</button>
@@ -215,8 +215,8 @@ function Receitas() {
           <button type="button" className="btn-ghost" onClick={() => setItems([...items, { name: "", dose: "", posology: "" }])}>+ Adicionar mais</button>
         </div>
         <label className="md:col-span-2">
-          <span className="label">Orienta\u00e7\u00e3o</span>
-          <textarea className="input h-20" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Cuidados, retorno, observa\u00e7\u00f5es" />
+          <span className="label">Orientacao</span>
+          <textarea className="input h-20" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Cuidados, retorno, observacoes" />
         </label>
         <div className="flex flex-wrap items-center gap-3 md:col-span-2">
           <button className="btn-gold">Salvar receita</button>
@@ -235,7 +235,7 @@ function Receitas() {
             <option value="">Nova</option>
             {data.prescriptions.map((r) => {
               const p = data.patients.find((x) => x.id === r.patientId);
-              return (<option key={r.id} value={r.id}>{r.date} — {p?.name || "Paciente"}</option>);
+              return (<option key={r.id} value={r.id}>{r.date} - {p?.name || "Paciente"}</option>);
             })}
           </select>
         </div>
@@ -248,7 +248,7 @@ function Receitas() {
           <img src={LOGO_MARCA} alt="" className="h-16 w-16 object-contain" />
           <div>
             <div className="font-serif text-sm tracking-[0.35em] text-[#8B6B3A]">LORHANY BATISTA</div>
-            <div className="mt-1 text-[10px] uppercase tracking-[0.4em] text-[#9a8a78]">Sa\u00fade e Est\u00e9tica</div>
+            <div className="mt-1 text-[10px] uppercase tracking-[0.4em] text-[#9a8a78]">SAUDE E ESTETICA</div>
           </div>
         </header>
         <div className="relative z-10 mt-8 flex flex-wrap justify-between gap-4 text-sm">
@@ -270,16 +270,16 @@ function Receitas() {
           {lines.map((item, i) => (
             <li key={i}>
               <span className="font-medium">{i + 1}. {item.name}</span>
-              {item.dose ? ` — ${item.dose}` : ""}
+              {item.dose ? ` - ${item.dose}` : ""}
               {item.posology ? <div className="pl-5 text-[#6b5a4a]">{item.posology}</div> : null}
             </li>
           ))}
         </ol>
         {notes && <p className="relative z-10 mt-6 whitespace-pre-wrap text-sm leading-6">{notes}</p>}
         <footer className="relative z-10 mt-16 text-center text-xs text-[#6b5a4a]">
-          <div className="font-medium">Enf\u00aa Lorhany Rodrigues Batista</div>
+          <div className="font-medium">Enf. Lorhany Rodrigues Batista</div>
           <div>Coren Go 242702</div>
-          <div className="mt-4 text-[11px]">Ed. Focus Business Center \u2014 Av. T-2, 471 \u2014 St. Bueno, Goi\u00e2nia \u2014 GO</div>
+          <div className="mt-4 text-[11px]">Ed. Focus Business Center - Av. T-2, 471 - St. Bueno, Goiania - GO</div>
         </footer>
       </article>
     </Shell>
