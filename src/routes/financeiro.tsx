@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Fragment, useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { brl, currentUser, loadData, saveData, today, uid, type ClinicData, type Finance } from "@/lib/clinic";
 
@@ -76,7 +76,8 @@ function Financeiro() {
           </thead>
           <tbody>
             {data.finance.map((f) => (
-              <tr key={f.id} className="border-t border-parchment">
+              <Fragment key={f.id}>
+              <tr className="border-t border-parchment">
                 <td className="px-4 py-2">{f.date}</td>
                 <td className="px-4 py-2">{f.type}</td>
                 <td className="px-4 py-2">{f.description}</td>
@@ -142,6 +143,7 @@ function Financeiro() {
                   </td>
                 </tr>
               )}
+              </Fragment>
             ))}
           </tbody>
         </table>
